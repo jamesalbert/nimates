@@ -9,6 +9,7 @@ var a: JsonNode = pm.estimate(
   dropoff = "3000 N Cahuenga Blvd"
 )
 echo a
+echo "estimated"
 
 var b: JsonNode = pm.zones
 echo b[0]{"properties"}
@@ -16,14 +17,15 @@ echo b[0]{"properties"}
 var c: JsonNode = pm.deliver(
   "A box of gray kittens",
   "Starbucks",
-  "(555) 555-5555",
   "James Albert",
+  "(555) 555-5555",
   "(666) 666-6666"
 )
 echo c
+echo "delivered"
 
 var d: JsonNode = pm.cancel(c["id"].getStr)
-echo d
+echo "canceled"
 
 var e: JsonNode = pm.deliveries
 echo e

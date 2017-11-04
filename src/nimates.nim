@@ -1,3 +1,5 @@
+## A PostMates client written in Nim
+
 import cgi
 import base64
 import httpclient
@@ -11,15 +13,11 @@ import sequtils
 proc encodeAllUrls(urls: varargs[string]): seq[string] =
   result = urls.map(encodeUrl)
 
-method get(self: Config, value: string, section=""): string =
-  result = self.getSectionValue(section, value)
-
 proc `[]`(self: Config, value: string): string =
-  result = self.get(value)
+  result = self.getSectionValue("", value)
 
 type
   PostMates* = ref object
-    # credentials
     cid: string
     key: string
     quote: JsonNode
@@ -35,12 +33,8 @@ method creds(self: PostMates) =
   self.cid = json{"customer_id"}.getStr
   self.key = json{"key"}.getStr
 
-method repr*(self: PostMates): string =
-  result = self.config["base"]
-
 method croak(self: PostMates, err="last") =
   raise newException(Exception, self.config["$1-error" % err])
-    # "[$1] - $2" % [$self.quote["code"], $self.quote["message"]])
 
 method initRequest(self: PostMates) =
   self.client = newHttpClient()
@@ -68,18 +62,15 @@ method request(self: PostMates, req: JsonNode): JsonNode =
     quit self.config["rate-error"]
   result = parseJson(resp.body)
 
-# Post Requests
+method repr*(self: PostMates): string =
+  ## Currently only outputs the base url of
+  ## the PostMates API
+  result = self.config["base"]
 
 method estimate*(self: PostMates, pickup, dropoff: string): JsonNode =
-  discard """
-  quote(self, pickup, dropoff)
-  pickup  - address to pickup the order
-  dropoff - address to dropoff the order
-
-  returns an estimate (quote) for a potential
-  delivery as json. Quotes can only be used
-  once and are only valid for a limited duration
-  """
+  ## Returns an estimate (quote) for a potential
+  ## delivery as json. Quotes can only be used
+  ## once and are only valid for a limited duration
   let
     path = self.config["estimate"]
     data = self.config["estimate-data"]
@@ -100,11 +91,19 @@ method deliver*(self: PostMates, manifest, pickup_name, dropoff_name,
                 pickup_business_name="", dropoff_business_name="",
                 pickup_notes="", dropoff_notes="",
                 requires_id="false"): JsonNode =
+  ## Creates a delivery for the items specified in the `manifest`.
+  ## The items will be picked up from `pickup_name` and delivered
+  ## to `dropoff_name`. If contact is required, either `dropoff_phone_number`
+  ## or `pickup_phone_number` will be used. Any additional information
+  ## can be specified via `pickup_notes` or `dropoff_notes`. The `quote_id`,
+  ## `pickup_address`, and `dropoff_address` from the previously
+  ## requested quote. If a quote is not made before a delivery is
+  ## requested, an error will be raised.
   if self.quote == nil:
     self.croak("quote")
   let
     path = self.config["deliver"]
-    data = self.config["deliver-data"]
+    data = self.config["deliver-data"].splitLines().join()
     req: JsonNode = %* {
       "method": "post",
       "path": path % self.cid,
@@ -121,6 +120,7 @@ method deliver*(self: PostMates, manifest, pickup_name, dropoff_name,
   result = self.request req
 
 method cancel*(self: PostMates, delivery_id: string): JsonNode =
+  ## Cancel a delivery by its ID
   let
     path = self.config["cancel"]
     req: JsonNode = %* {
@@ -133,6 +133,7 @@ method cancel*(self: PostMates, delivery_id: string): JsonNode =
   result = self.request req
 
 method tip*(self: PostMates, delivery_id: string): JsonNode =
+  ## Tip a delivery by its ID
   let
     path = self.config["tip"]
     req: JsonNode = %* {
@@ -144,9 +145,8 @@ method tip*(self: PostMates, delivery_id: string): JsonNode =
     }
   result = self.request req
 
-# Get Requests
-
 method zones*(self: PostMates): JsonNode =
+  ## Get a GEOJson list of available zones
   let
     path = self.config["zones"]
     req: JsonNode = %* {
@@ -155,6 +155,7 @@ method zones*(self: PostMates): JsonNode =
   result = self.request req
 
 method deliveries*(self: PostMates): JsonNode =
+  ## Get a list of all deliveries ever made
   let
     path = self.config["deliveries"]
     req: JsonNode = %* {
@@ -163,6 +164,7 @@ method deliveries*(self: PostMates): JsonNode =
   result = self.request req
 
 method delivery*(self: PostMates, delivery_id: string): JsonNode =
+  ## Get a delivery by its ID
   let
     path = self.config["delivery"]
     req: JsonNode = %* {
@@ -174,6 +176,7 @@ method delivery*(self: PostMates, delivery_id: string): JsonNode =
   result = self.request req
 
 proc newPostMates*(): PostMates =
+  # `PostMates` constructor
   let
     confpath = "/config/default.ini"
     srcdir   = parentDir(currentSourcePath)

@@ -10,13 +10,8 @@ srcDir        = "src"
 
 requires "nim >= 0.17.2"
 
-task clean, "cleaning project":
-  exec "rm -rf nimates nimcache"
-
-task run, "running project":
-  exec "nimble clean"
-  exec "nimble build"
-  exec "./nimates"
-
 task example, "running example":
   exec "cd examples && nim c -r basic.nim"
+
+task docs, "generating docs":
+  exec "nim doc -o:docs/nimates.html src/nimates.nim"
