@@ -23,7 +23,7 @@ You can clone this repo and run the example from the root directory with `nimble
 
 Be sure to specify `-d:ssl` when compiling (I usually keep this in the .cfg file)
 
-More documentation can be found in `docs`
+More documentation can be found at https://jamesalbert.github.io/nimates/nimates.html
 
 ## Contributing
 
