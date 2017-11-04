@@ -34,6 +34,7 @@ Recommended way of contributing:
   - run `nimble develop`, this will symlink this repo to your .nimble directory (changes are instant; no need for running `nimble install` over and over...)
   - test changes
   - write and generate docs
+  - create a pr
 
 ## Tests
 
