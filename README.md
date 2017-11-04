@@ -25,6 +25,8 @@ Be sure to specify `-d:ssl` when compiling (I usually keep this in the .cfg file
 
 More documentation can be found at https://jamesalbert.github.io/nimates/nimates.html
 
+Documentation for the Postmates API found at https://postmates.com/developer/docs
+
 ## Contributing
 
 This is a brand-new module. If you find bugs or features that need to be added, PR away!
